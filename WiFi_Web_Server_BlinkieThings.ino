@@ -1,11 +1,16 @@
 /*
  WiFi Web Server LED Blink
- A simple web server that lets you blink an LED via the web.
+ A simple web server that lets you blink the LEDs via a web server.
  This sketch will print the IP address of your WiFi Shield (once connected)
  to the Serial monitor. From there, you can open that address in a web browser
- to turn on and off the LED on pin 5.
- If the IP address of your shield is yourAddress:
- http://<yourAddress>/alert turns the LED on
+ to turn on and off the LED on the assigned pins (pin 5 is the default)
+ Replace <yourAddress> with the IP address of the ESP32:
+ http://<yourAddress>/ 
+ 
+ For the NGFW you will send calls to:
+ http://<yourAddress>/alert
+ turns the LED on
+ 
  This example is written for a network using WPA encryption. For
  WEP or WPA, change the Wifi.begin() call accordingly.
  Circuit:
@@ -16,10 +21,7 @@
 #include <WiFi.h>
 
 const char* ssid     = "<SSID>"; // Enter in the SSID you want to connect to
-const char* password = "<Password>"; // Enter the password for the SSID
-
-//const char* www_username = "admin"; // ***This is a default value change this!***
-//const char* www_password = "password"; // ***This is a default value change this!***
+const char* password = "<WPA>"; // Enter the password for the SSID
 
 // Set web server port number to 80
 WiFiServer server(80);
@@ -28,10 +30,10 @@ WiFiServer server(80);
 String header;
 
 // Auxiliar variables to store the current output state
-String LEDstate = "Off";
+String LEDstate = "off";
 
 // Assign variables
-const int ext_led = 5;
+const int ext_led = 5; // Update this to whatever GPIO you use for LEDs
 int timer = 500;
 int i;
 
@@ -41,7 +43,6 @@ void setup()
     // Initialize the output variables as outputs
     pinMode(ext_led, OUTPUT);
     pinMode(BUILTIN_LED, OUTPUT);
-
     // Set outputs to LOW
     digitalWrite(ext_led, LOW);
     digitalWrite(BUILTIN_LED, LOW);
@@ -71,8 +72,6 @@ void setup()
     server.begin();
 }
 
-int value = 0;
-
 void loop(){
  WiFiClient client = server.available();   // listen for incoming clients
 
@@ -97,13 +96,13 @@ void loop(){
 
             // turns the LEDs on and off
             if (header.indexOf("GET /LED/on") >= 0) {
-              Serial.println("LEDs on");
-              LEDstate = "On";
+              Serial.println("LEDs On");
+              LEDstate = "on";
               digitalWrite(ext_led, HIGH);
               digitalWrite(BUILTIN_LED, HIGH);
             } else if (header.indexOf("GET /LED/off") >= 0) {
-              Serial.println("LEDs off");
-              LEDstate = "Off";
+              Serial.println("LEDs Off");
+              LEDstate = "off";
               digitalWrite(ext_led, LOW);
               digitalWrite(BUILTIN_LED, LOW);
             } 
@@ -120,6 +119,8 @@ void loop(){
             client.println(".button2 {background-color: #555555;}</style></head>");
             // Web Page Heading
             client.println("<body><h1>DuckDuckSOC Web Server</h1>");
+            client.println("<img src=https://i.imgur.com/qtpFo58.png title=Quack! Quack! align=top height=300 width=300>");
+            
             // Display current state, and ON/OFF buttons for ext_led  
             client.println("<p>LED State: " + LEDstate + "</p>");
             // If the LEDstate is off, it displays the ON button       
