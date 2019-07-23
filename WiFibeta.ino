@@ -20,8 +20,8 @@
 
 #include <WiFi.h>
 
-const char* ssid     = "<SSID>"; // Enter in the SSID you want to connect to
-const char* password = "<WPA>"; // Enter the password for the SSID
+const char* ssid     = "<Your SSID Goes Here>"; // ** Enter in the SSID you want to connect to **
+const char* password = "<Your Pre-Shared Key Goes Here>"; // ** Enter the password for the SSID **
 
 // Set web server port number to 80
 WiFiServer server(80);
@@ -33,10 +33,10 @@ String header;
 String LEDstate = "off";
 
 // Assign variables
-int ledPins[] = {5, 4};       // an array of pin numbers to which LEDs are attached
-int pinCount = 2;
-//const int ext_led = 5;      // Update this to whatever GPIO you use for LEDs
-int timer = 500;
+int ledPins[] = {5, 4};       // ** an array of pin numbers to which LEDs are attached **
+int pinCount = 2;             // ** update this to the respective value from the GPIO variable input **
+//const int ext_led = 5;      // update this to whatever GPIO you use for LEDs
+int timer = 500;              // the higher the number, the slower the timing.
 int i;
 
 void setup() {
@@ -73,7 +73,8 @@ void setup() {
     server.begin();
 }
 
-void on(int extPin) {
+
+void pinOn(int extPin) {
     // turn the pin on:
     digitalWrite(ledPins[extPin], HIGH);
     digitalWrite(BUILTIN_LED, HIGH); 
@@ -81,12 +82,15 @@ void on(int extPin) {
     Serial.println("LEDs are ON");
 
     delay(timer);
+ 
+    readPin(extPin);
     
     Serial.println();
     Serial.println();
 }
 
-void off(int extPin) {
+
+void pinOff(int extPin) {
     // turn the pin off:
     digitalWrite(ledPins[extPin], LOW);
     digitalWrite(BUILTIN_LED, LOW); 
@@ -94,10 +98,22 @@ void off(int extPin) {
     Serial.println("LEDs are OFF");
 
     delay(timer);
+ 
+    readPin(extPin);
   
     Serial.println();
     Serial.println();
 }
+
+
+void wave() {
+ // loop from the lowest pin to the highest:
+ for (int extPin = 0; extPin < pinCount; extPin++) {
+  on(extPin);
+  off(extPin);
+ }
+}
+
 
 void loop() {
  WiFiClient client = server.available();   // listen for incoming clients
@@ -125,23 +141,32 @@ void loop() {
            for (i = 0; i<=5; i++) {
             if (currentLine.endsWith("GET /alert")) {
              // turn the pins on:
-             on(extPin);
+             pinOn(extPin);
              // turn the pins off:
-             off(extPin);
+             pinOff(extPin);
             }
            }
-
+           
+           
+           // Check to see if the button Wave was pressed:
+           for (i = 0; i<=5; i++) {
+            if (currentLine.endsWith("GET /WAVE")) {
+             wave(extPin);
+            }
+           }
+            
             // turns the LEDs on and off
             if (header.indexOf("GET /LED/on") >= 0) {
               Serial.println("LEDs On");
               LEDstate = "on";
-              on(extPin);
+              pinOn(extPin);
             } else if (header.indexOf("GET /LED/off") >= 0) {
               Serial.println("LEDs Off");
               LEDstate = "off";
-              off(extPin);
+              pinOff(extPin);
             } 
-              
+            
+           
             // Display the HTML web page
             client.println("<!DOCTYPE html><html>");
             client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
@@ -163,7 +188,8 @@ void loop() {
               client.println("<p><a href=\"/LED/on\"><button class=\"button\">ON</button></a></p>");
             } else {
               client.println("<p><a href=\"/LED/off\"><button class=\"button button2\">OFF</button></a></p>");
-            } 
+            }
+            client.print("<center><p>Wave<b>(2 Secs Aprox)</b><a href=\"WAVE\"><button>Start</button></center>");
             client.println("</body></html>");
 
             // The HTTP response ends with another blank line:
