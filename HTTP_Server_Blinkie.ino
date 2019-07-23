@@ -5,7 +5,7 @@
  *
  * WARNING:
  * __________
- * This is an HTTP Webserver over tcp/80. None of the data will not be encrypted. If you would like to 
+ * This is an HTTP Webserver over tcp/80. None of the data will be encrypted. If you would like to 
  * encrypt your ES32 then please import and configure a TLS-enabled web server. A great example can be found here:
  * https://github.com/fhessel/esp32_https_server
  * __________
