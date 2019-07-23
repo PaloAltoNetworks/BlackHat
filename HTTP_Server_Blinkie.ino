@@ -1,6 +1,15 @@
 /**
- * This was built for the ESP32 to server as a HTTP Webserver
+ * This sketchbook was built for the ESP32 to server as a HTTP Webserver. The purpose of this was built to host 
+ * a web server that the Palo Alto Networks NGFW can make HTTP Post calls to and provide a visual notification 
+ * when an alert triggers from NGFW.
  *
+ * WARNING:
+ * __________
+ * This is an HTTP Webserver over tcp/80. None of the data will not be encrypted. If you would like to 
+ * encrypt your ES32 then please import and configure a TLS-enabled web server. A great example can be found here:
+ * https://github.com/fhessel/esp32_https_server
+ * __________
+ * 
  */
 
 #include <WiFi.h>
