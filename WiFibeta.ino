@@ -69,7 +69,7 @@ void setup() {
     Serial.println("");
     Serial.println("WiFi connected.");
     Serial.println("IP address: ");
-    Serial.println(WiFi.localIP()) "/ in your browser to see it working");
+    Serial.println(WiFi.localIP() "/ in your browser to see it working"));
     
     server.begin();
 }
@@ -188,7 +188,7 @@ void loop() {
             } else {
               client.println("<p><a href=\"/LED/off\"><button class=\"button button2\">OFF</button></a></p>");
             }
-            client.print("<center><p>Wave<b>(2 Secs Aprox)</b><a href=\"WAVE\"><button>Start</button></center>");
+            client.print("<center><p>Wave<b>(3 Secs Aprox)</b><a href=\"/WAVE\"><button class=\"button\">WAVE</button></a></p></center>");
             client.println("</body></html>");
 
             // The HTTP response ends with another blank line:
