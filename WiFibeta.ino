@@ -35,30 +35,24 @@ String LEDstate = "off";
 // Assign variables
 int ledPins[] = {5, 4};       // an array of pin numbers to which LEDs are attached
 int pinCount = 2;
-//const int ext_led = 5; // Update this to whatever GPIO you use for LEDs
+//const int ext_led = 5;      // Update this to whatever GPIO you use for LEDs
 int timer = 500;
 int i;
 
-void setup()
-{
+void setup() {
     Serial.begin(115200);
     delay(10);
     
     // Initialize the output variables as outputs
     // the array elements are numbered from 0 to (pinCount - 1).
     // use a for loop to initialize each pin as an output:
-    for (int thisPin = 0; thisPin < pinCount; thisPin++) {
-    pinMode(ledPins[thisPin], OUTPUT);
-    //pinMode(ext_led, OUTPUT);
-    pinMode(BUILTIN_LED, OUTPUT);
-    // Set outputs to LOW
-    //digitalWrite(ext_led, LOW);
-    digitalWrite(BUILTIN_LED, LOW);
-                 
-    delay(10);
-
+ for (int extPin = 0; extPin < pinCount; extPin++) {
+    pinMode(ledPins[extPin], OUTPUT);
+    pinMode(BUILTIN_LED, OUTPUT);  
+  //pinMode(ext_led, OUTPUT);
+ }
+ 
     // We start by connecting to a WiFi network
-
     Serial.println();
     Serial.println();
     Serial.print("Connecting to ");
@@ -74,13 +68,38 @@ void setup()
     Serial.println("");
     Serial.println("WiFi connected.");
     Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
-    Serial.print("/ in your browser to see it working");
+    Serial.println(WiFi.localIP()) "/ in your browser to see it working");
     
     server.begin();
 }
 
-void loop(){
+void on(int extPin) {
+    // turn the pin on:
+    digitalWrite(ledPins[extPin], HIGH);
+    digitalWrite(BUILTIN_LED, HIGH); 
+    Serial.print(extPin);
+    Serial.println("LEDs are ON");
+
+    delay(timer);
+    
+    Serial.println();
+    Serial.println();
+}
+
+void off(int extPin) {
+    // turn the pin off:
+    digitalWrite(ledPins[extPin], LOW);
+    digitalWrite(BUILTIN_LED, LOW); 
+    Serial.print(extPin);
+    Serial.println("LEDs are OFF");
+
+    delay(timer);
+  
+    Serial.println();
+    Serial.println();
+}
+
+void loop() {
  WiFiClient client = server.available();   // listen for incoming clients
 
   if (client) {                             // if you get a client,
@@ -101,18 +120,26 @@ void loop(){
             client.println("HTTP/1.1 200 OK");
             client.println("Content-type:text/html");
             client.println();
+           
+          // Check to see if the client request was "GET /alert" for NGFW HTTP POST:
+           for (i = 0; i<=5; i++) {
+            if (currentLine.endsWith("GET /alert")) {
+             // turn the pins on:
+             on(extPin);
+             // turn the pins off:
+             off(extPin);
+            }
+           }
 
             // turns the LEDs on and off
             if (header.indexOf("GET /LED/on") >= 0) {
               Serial.println("LEDs On");
               LEDstate = "on";
-              digitalWrite(ext_led, HIGH);
-              digitalWrite(BUILTIN_LED, HIGH);
+              on(extPin);
             } else if (header.indexOf("GET /LED/off") >= 0) {
               Serial.println("LEDs Off");
               LEDstate = "off";
-              digitalWrite(ext_led, LOW);
-              digitalWrite(BUILTIN_LED, LOW);
+              off(extPin);
             } 
               
             // Display the HTML web page
@@ -149,24 +176,6 @@ void loop(){
         } else if (c != '\r') {  // if you got anything else but a carriage return character,
           currentLine += c;      // add it to the end of the currentLine
         }
-
-        // Check to see if the client request was "GET /alert" for NGFW HTTP POST:
-        for (i = 0; i<=5; i++) {
-          if (currentLine.endsWith("GET /alert")) 
-          {
-            // turn the pins on:
-            digitalWrite(ext_led, HIGH);
-            digitalWrite(BUILTIN_LED, HIGH);
-            delay(timer);
-            // turn the pins off:
-            digitalWrite(ext_led, LOW);
-            digitalWrite(BUILTIN_LED, LOW); 
-            delay(timer);
-          }
-
-        }
-        
-      
       }
     }
     // close the connection:
