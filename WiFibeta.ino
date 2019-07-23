@@ -82,7 +82,6 @@ void pinOn(int extPin) {
     Serial.println("LEDs are ON");
 
     delay(timer);
- 
     readPin(extPin);
     
     Serial.println();
@@ -98,7 +97,6 @@ void pinOff(int extPin) {
     Serial.println("LEDs are OFF");
 
     delay(timer);
- 
     readPin(extPin);
   
     Serial.println();
