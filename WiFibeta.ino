@@ -50,6 +50,7 @@ void setup() {
     pinMode(ledPins[extPin], OUTPUT);
     pinMode(BUILTIN_LED, OUTPUT);  
   //pinMode(ext_led, OUTPUT);
+    Serial.print(String(extPin)" set to an OUTPUT pin"));
  }
  
     // We start by connecting to a WiFi network
