@@ -1,4 +1,4 @@
-# Duck Duck SOC...
+# Duck Duck SOC
 If you have reached this page it is because you want to build your rubber ducky notifcation thingie uber TACTIcool tool you received from the Palo Alto Networks booth at the Black Hat USA 2019 show! *gasping for breath*
 
 #### Purpose:
