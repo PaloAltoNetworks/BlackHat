@@ -32,9 +32,7 @@ bool LEDstate = LOW;
 #define numberOfLights 2      // update this variable if you increase the GPIO pins
 int ledPins[] = {4,5};
 int pinState[numberOfLights];
-//uint8_t extLED1 = 5;        // update this to whatever GPIO you use for LEDs
-//uint8_t extLED2 = 4;
-int timer = 200;              // the higher the number, the slower the timing.
+int timer = 500;              // the higher the number, the slower the timing.
 int i;
 
 void setup() {
@@ -44,8 +42,6 @@ void setup() {
   //initialize ledPins array as outputs
   for (int i = 0; i< numberOfLights; i++) {
     pinMode(ledPins[i], OUTPUT);
-    //pinMode(extLED1, OUTPUT);
-    //pinMode(extLED2, OUTPUT);
     pinMode(BUILTIN_LED, OUTPUT); 
     pinState[i] = LOW; 
   }
@@ -59,7 +55,7 @@ void setup() {
 
   //check WiFi status
   while (WiFi.status() != WL_CONNECTED) {
-  delay(500);
+  delay(timer);
   Serial.print(".");
   }
   Serial.println("");
@@ -87,9 +83,6 @@ void loop() {
     if(LEDstate) {
       pinState[i] = ~pinState[i];
       digitalWrite(ledPins[i], pinState[i]);
-    //digitalWrite(extLED1, HIGH);
-    //digitalWrite(extLED2, HIGH);
-    //digitalWrite(BUILTIN_LED, HIGH);
   }
  }
 }
@@ -120,36 +113,43 @@ void handle_off() {
 }
 
 void handle_wave() {
-  for (int i = 0; i <= numberOfLights; i++) {
-    digitalWrite(ledPins[i], HIGH);
-    digitalWrite(BUILTIN_LED, HIGH);
-    delay(timer);
-    digitalWrite(ledPins[i], LOW);
-    digitalWrite(BUILTIN_LED, LOW);
-  }
-  for (int i = 0; i >= numberOfLights; i--) {
-    digitalWrite(ledPins[i], HIGH);
-    digitalWrite(BUILTIN_LED, HIGH);
-    delay(timer);
-    digitalWrite(ledPins[i], LOW);
-    digitalWrite(BUILTIN_LED, LOW);
+  int repeat = 0;
+  while (repeat < 5) {
+    for (int i = 0; i <= numberOfLights; i++) {
+      digitalWrite(ledPins[i], HIGH);
+      digitalWrite(BUILTIN_LED, HIGH);
+      delay(timer);
+      digitalWrite(ledPins[i], LOW);
+      digitalWrite(BUILTIN_LED, LOW);
+    }
+    for (int i = 0; i >= numberOfLights; i--) {
+      digitalWrite(ledPins[i], HIGH);
+      digitalWrite(BUILTIN_LED, HIGH);
+      delay(timer);
+      digitalWrite(ledPins[i], LOW);
+      digitalWrite(BUILTIN_LED, LOW);
+    }
+    repeat++;
   }
   Serial.println("Doin' the W-A-V-E!");
   server.send(200, "text/html", SendHTML(LEDstate)); 
 }
 
 void handle_alert() {
-  for (i = 0; i<=5; i++) {  
-    // turn the LEDs on:
-    digitalWrite(ledPins[i], HIGH);
-    digitalWrite(BUILTIN_LED, HIGH);
-    delay(300);
-    
-    // turn the LEDs off:
-    digitalWrite(ledPins[i], LOW);
-    digitalWrite(BUILTIN_LED, LOW);
-    delay(300);
-  }
+  int repeat = 0;
+  while (repeat < 5) {
+    for (int i = 0; i< numberOfLights; i++) {
+      //turn the LEDs on:
+      digitalWrite(ledPins[i], HIGH);
+      digitalWrite(BUILTIN_LED, HIGH);
+      delay(timer);
+      //turn the LEDs off:
+      digitalWrite(ledPins[i], LOW);
+      digitalWrite(BUILTIN_LED, LOW);
+      delay(200);
+    }
+    repeat++;
+    }
   Serial.println("RED ALERT!");
   server.send(200, "text/html", SendHTML(LEDstate)); 
 }
