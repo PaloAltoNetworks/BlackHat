@@ -29,9 +29,8 @@ String header;
 bool LEDstate = LOW;
 
 // Assign variables
-#define numberOfLights 2      // update this variable if you increase the GPIO pins
-int ledPins[] = {4,5};
-int pinState[numberOfLights];
+const byte ledPins[] = {4,5,12};
+const byte numberOfLights = sizeof(ledPins) / sizeof(ledPins[0]);
 int timer = 500;              // the higher the number, the slower the timing.
 int i;
 
@@ -44,7 +43,6 @@ void setup() {
   for (int i = 0; i< numberOfLights; i++) {
     pinMode(ledPins[i], OUTPUT);
     pinMode(BUILTIN_LED, OUTPUT); 
-    pinState[i] = LOW; 
     yield();
   }
 
@@ -84,54 +82,56 @@ void loop() {
   server.handleClient();
   
   for (int i = 0; i < numberOfLights; i++) {
-    if(LEDstate) {
-      pinState[i] = ~pinState[i];
-      digitalWrite(ledPins[i], pinState[i]);
-      yield();
-  }
+      digitalWrite(ledPins[i], ledState);
  }
 }
 
 void handle_OnConnect() {
-  LEDstate = LOW;
-  server.send(200, "text/html", SendHTML(LEDstate)); 
+  ledState = LOW;
+  server.send(200, "text/html", SendHTML(ledState)); 
   yield();
 }
 
 void handle_on() {
-  for (int i = 0; i< numberOfLights; i++) {
-    digitalWrite(ledPins[i], HIGH);
-    digitalWrite(BUILTIN_LED, HIGH);
-    yield();
-  }  
-  Serial.println("LED Status: ON"); 
-  LEDstate = HIGH;
-  yield();
-  server.send(200, "text/html", SendHTML(LEDstate)); 
+  
+  if (ledState == LOW) {
+    ledState = HIGH;
+    } else {
+      ledState = LOW;
+      }
+      digitalWrite(ledPins[i], ledState);
+      digitalWrite(BUILTIN_LED, HIGH);
+      yield();
+      Serial.println("LED Status: ON"); 
+      yield();
+      server.send(200, "text/html", SendHTML(ledState)); 
 }
 
 void handle_off() {
-  for (int i = 0; i< numberOfLights; i++) {
-    digitalWrite(ledPins[i], LOW);
-    digitalWrite(BUILTIN_LED, LOW);
-    yield();
-  }
-  Serial.println("LED Status: OFF");
-  LEDstate = LOW;
-  yield();
-  server.send(200, "text/html", SendHTML(LEDstate)); 
+  
+  if (ledState == HIGH) {
+    ledState = LOW;
+    } else {
+      ledState = HIGH;
+      }
+      digitalWrite(ledPins[i], ledState);
+      digitalWrite(BUILTIN_LED, LOW);
+      yield();
+      Serial.println("LED Status: OFF"); 
+      yield();
+      server.send(200, "text/html", SendHTML(ledState)); 
 }
 
 void handle_wave() {
+  
   int repeat = 0;
-  while (repeat < 5) {
+  while (repeat < 3) {
     for (int i = 0; i <= numberOfLights; i++) {
       digitalWrite(ledPins[i], HIGH);
       digitalWrite(BUILTIN_LED, HIGH);
       delay(timer);
       digitalWrite(ledPins[i], LOW);
       digitalWrite(BUILTIN_LED, LOW);
-      delay(timer);
       yield();
     }
     for (int i = 0; i >= numberOfLights; i--) {
@@ -140,7 +140,7 @@ void handle_wave() {
       delay(timer);
       digitalWrite(ledPins[i], LOW);
       digitalWrite(BUILTIN_LED, LOW);
-      delay(timer);
+      //delay(timer);
       yield();
     }
     repeat++;
@@ -148,29 +148,30 @@ void handle_wave() {
   }
   Serial.println("Doin' the W-A-V-E!");
   yield();
-  server.send(200, "text/html", SendHTML(LEDstate)); 
+  server.send(200, "text/html", SendHTML(ledState)); 
 }
 
 void handle_alert() {
+  
   int repeat = 0;
-  while (repeat < 5) {
+  while (repeat < 3) {
     for (int i = 0; i< numberOfLights; i++) {
-      //turn the LEDs on:
       digitalWrite(ledPins[i], HIGH);
       digitalWrite(BUILTIN_LED, HIGH);
-      delay(timer);
+      delay(300);
+      
       //turn the LEDs off:
       digitalWrite(ledPins[i], LOW);
       digitalWrite(BUILTIN_LED, LOW);
-      delay(200);
+      delay(timer);
+      yield();
+      }
+      repeat++;
       yield();
     }
-    repeat++;
-    yield();
-    }
-  Serial.println("RED ALERT!");
-  yield();
-  server.send(200, "text/html", SendHTML(LEDstate)); 
+      Serial.println("RED ALERT!");
+      yield();
+      server.send(200, "text/html", SendHTML(ledState)); 
 }
 
 void handle_NotFound(){
@@ -195,7 +196,7 @@ String SendHTML(uint8_t ledstatus){
   ptr +="<body><h1>DuckDuckSOC Web Server</h1>";
   ptr +="<img src=https://i.imgur.com/qtpFo58.png title=Quack! Quack! align=top height=300 width=300>";
   
-    // If the LEDstate is off, it displays the ON button
+    // If the ledState is off, it displays the ON button
     if (ledstatus) {
       ptr +="<p>LED Status: ON</p><a href=\"/LED/off\"><button class=\"button button2\">OFF</button></a>";
       } else { 
