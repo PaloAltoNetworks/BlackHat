@@ -37,13 +37,15 @@ int i;
 
 void setup() {
   Serial.begin(115200);
-  delay(10);
+  delay(100);
+  yield();
   
   //initialize ledPins array as outputs
   for (int i = 0; i< numberOfLights; i++) {
     pinMode(ledPins[i], OUTPUT);
     pinMode(BUILTIN_LED, OUTPUT); 
     pinState[i] = LOW; 
+    yield();
   }
 
   //we start by connecting to a WiFi network
@@ -61,6 +63,7 @@ void setup() {
   Serial.println("");
   Serial.println("WiFi connected.");
   Serial.print("Got IP: "); Serial.println(WiFi.localIP());
+  yield();
 
   server.on("/", handle_OnConnect);
   server.on("/LED/on", handle_on);
@@ -70,6 +73,7 @@ void setup() {
   server.onNotFound(handle_NotFound);
         
   server.begin();
+  yield();
   Serial.println("HTTP server started");
   Serial.println("Navigate to the IP in your browser to see it working");
 
@@ -83,6 +87,7 @@ void loop() {
     if(LEDstate) {
       pinState[i] = ~pinState[i];
       digitalWrite(ledPins[i], pinState[i]);
+      yield();
   }
  }
 }
@@ -90,15 +95,18 @@ void loop() {
 void handle_OnConnect() {
   LEDstate = LOW;
   server.send(200, "text/html", SendHTML(LEDstate)); 
+  yield();
 }
 
 void handle_on() {
   for (int i = 0; i< numberOfLights; i++) {
     digitalWrite(ledPins[i], HIGH);
     digitalWrite(BUILTIN_LED, HIGH);
+    yield();
   }  
   Serial.println("LED Status: ON"); 
   LEDstate = HIGH;
+  yield();
   server.send(200, "text/html", SendHTML(LEDstate)); 
 }
 
@@ -106,9 +114,11 @@ void handle_off() {
   for (int i = 0; i< numberOfLights; i++) {
     digitalWrite(ledPins[i], LOW);
     digitalWrite(BUILTIN_LED, LOW);
+    yield();
   }
   Serial.println("LED Status: OFF");
   LEDstate = LOW;
+  yield();
   server.send(200, "text/html", SendHTML(LEDstate)); 
 }
 
@@ -121,6 +131,8 @@ void handle_wave() {
       delay(timer);
       digitalWrite(ledPins[i], LOW);
       digitalWrite(BUILTIN_LED, LOW);
+      delay(timer);
+      yield();
     }
     for (int i = 0; i >= numberOfLights; i--) {
       digitalWrite(ledPins[i], HIGH);
@@ -128,10 +140,14 @@ void handle_wave() {
       delay(timer);
       digitalWrite(ledPins[i], LOW);
       digitalWrite(BUILTIN_LED, LOW);
+      delay(timer);
+      yield();
     }
     repeat++;
+    yield();
   }
   Serial.println("Doin' the W-A-V-E!");
+  yield();
   server.send(200, "text/html", SendHTML(LEDstate)); 
 }
 
@@ -147,10 +163,13 @@ void handle_alert() {
       digitalWrite(ledPins[i], LOW);
       digitalWrite(BUILTIN_LED, LOW);
       delay(200);
+      yield();
     }
     repeat++;
+    yield();
     }
   Serial.println("RED ALERT!");
+  yield();
   server.send(200, "text/html", SendHTML(LEDstate)); 
 }
 
