@@ -1,23 +1,9 @@
-/**
- * This sketchbook was built for the ESP32 to server as a HTTP Webserver. The purpose of this was built to host 
- * a web server that the Palo Alto Networks NGFW can make HTTP Post calls to and provide a visual notification 
- * when an alert triggers from NGFW.
- *
- * WARNING:
- * __________
- * This is an HTTP Webserver over tcp/80. None of the data will be encrypted. If you would like to 
- * encrypt your ES32 then please import and configure a TLS-enabled web server. A great example can be found here:
- * https://github.com/fhessel/esp32_https_server
- * __________
- * 
- */
-
 #include <WiFi.h>
 #include <WebServer.h>
 
-// TODO: Configure your WiFi here:
-const char* ssid = "Your SSID Goes Here";  // Enter SSID here
-const char* password = "Your Pre-Shared Key Goes Here";  //Enter Password here
+/* Put your SSID & Password */
+const char* ssid = "Your SSID Here";  // Enter SSID here
+const char* password = "Your Pre-Shared Key Here";  //Enter Password here
 
 // declare an object of WebServer library
 WebServer server(80);
@@ -26,12 +12,13 @@ WebServer server(80);
 String header;
 
 // Auxiliary variables to store the current output state
-bool ledState = LOW;
+int ledState = LOW;
 
 // Assign variables
-const byte ledPins[] = {4,5,12};
+const byte ledPins[] = {4,5,12};  //update this to the GPIO pins you will be using to power your LEDs
 const byte numberOfLights = sizeof(ledPins) / sizeof(ledPins[0]);
 int timer = 500;              // the higher the number, the slower the timing.
+int repeat = 0;
 int i;
 
 void setup() {
@@ -43,7 +30,6 @@ void setup() {
   for (int i = 0; i< numberOfLights; i++) {
     pinMode(ledPins[i], OUTPUT);
     pinMode(BUILTIN_LED, OUTPUT); 
-    yield();
   }
 
   //we start by connecting to a WiFi network
@@ -62,7 +48,6 @@ void setup() {
   Serial.println("WiFi connected.");
   Serial.print("Got IP: "); Serial.println(WiFi.localIP());
   yield();
-
   server.on("/", handle_OnConnect);
   server.on("/LED/on", handle_on);
   server.on("/LED/off", handle_off);
@@ -81,9 +66,9 @@ void loop() {
   
   server.handleClient();
   
-  for (int i = 0; i < numberOfLights; i++) {
-      digitalWrite(ledPins[i], ledState);
- }
+  //for (int i = 0; i < numberOfLights; i++) {
+    //digitalWrite(ledPins[i], ledState);
+ //}
 }
 
 void handle_OnConnect() {
@@ -93,82 +78,79 @@ void handle_OnConnect() {
 }
 
 void handle_on() {
+  Serial.println("LED Status: ON"); 
   
-  if (ledState == LOW) {
+  for (int i = 0; i < numberOfLights; i++) {
     ledState = HIGH;
-    } else {
-      ledState = LOW;
-      }
-      digitalWrite(ledPins[i], ledState);
-      digitalWrite(BUILTIN_LED, HIGH);
-      yield();
-      Serial.println("LED Status: ON"); 
-      yield();
-      server.send(200, "text/html", SendHTML(ledState)); 
+    digitalWrite(ledPins[i], HIGH);
+    digitalWrite(BUILTIN_LED, HIGH);
+    yield();
+  }
+  server.send(200, "text/html", SendHTML(ledState)); 
 }
 
 void handle_off() {
-  
-  if (ledState == HIGH) {
+  Serial.println("LED Status: OFF");
+  for (int i = 0; i < numberOfLights; i++) {
     ledState = LOW;
-    } else {
-      ledState = HIGH;
-      }
-      digitalWrite(ledPins[i], ledState);
-      digitalWrite(BUILTIN_LED, LOW);
-      yield();
-      Serial.println("LED Status: OFF"); 
-      yield();
-      server.send(200, "text/html", SendHTML(ledState)); 
+    digitalWrite(ledPins[i], LOW);
+    digitalWrite(BUILTIN_LED, LOW);
+    yield(); 
+  }
+  server.send(200, "text/html", SendHTML(ledState));
 }
 
 void handle_wave() {
-  
-  int repeat = 0;
+  Serial.println("Doin' the W-A-V-E!");
+  server.send(200, "text/html", SendHTML(ledState));
+
+  int repeat =0;
   while (repeat < 3) {
     for (int i = 0; i <= numberOfLights; i++) {
       digitalWrite(ledPins[i], HIGH);
       digitalWrite(BUILTIN_LED, HIGH);
-      delay(timer);
+      delay(200);
       digitalWrite(ledPins[i], LOW);
       digitalWrite(BUILTIN_LED, LOW);
-      yield();
-    }
-    for (int i = 0; i >= numberOfLights; i--) {
-      digitalWrite(ledPins[i], HIGH);
-      digitalWrite(BUILTIN_LED, HIGH);
-      delay(timer);
-      digitalWrite(ledPins[i], LOW);
-      digitalWrite(BUILTIN_LED, LOW);
-      //delay(timer);
-      yield();
-    }
-    repeat++;
-    yield();
-  }
-  Serial.println("Doin' the W-A-V-E!");
-  yield();
-  server.send(200, "text/html", SendHTML(ledState)); 
-}
-
-void handle_alert() {
-  Serial.println("RED ALERT!");
-  server.send(200, "text/html", SendHTML(ledState)); 
-  int repeat = 0;
-  while (repeat < 3) {
-    for (int i = 0; i< numberOfLights; i++) {
-      digitalWrite(ledPins[i], HIGH);
-      digitalWrite(BUILTIN_LED, HIGH);
       yield();
     }
     delay(300);
-    for (int i = 0; i< numberOfLights; i++) {
+    
+    for (int i = 0; i >= numberOfLights; i--) {
+      digitalWrite(ledPins[i], HIGH);
+      digitalWrite(BUILTIN_LED, HIGH);
+      delay(200);
       digitalWrite(ledPins[i], LOW);
       digitalWrite(BUILTIN_LED, LOW);
       yield();
     }
     delay(timer);
     repeat++;
+  }
+ yield();
+}
+
+void handle_alert() {
+  Serial.println("RED ALERT!");
+  server.send(200, "text/html", SendHTML(ledState));
+  
+  int repeat = 0; 
+  while (repeat <=3) {
+    for (int i = 0; i< numberOfLights; i++) {
+      //turn the LEDs on:
+      digitalWrite(ledPins[i], HIGH);
+      digitalWrite(BUILTIN_LED, HIGH);
+      yield();
+    }
+    delay(200);
+    for (int i = 0; i< numberOfLights; i++) {
+         //turn the LEDs off:
+        digitalWrite(ledPins[i], LOW);
+        digitalWrite(BUILTIN_LED, LOW);
+        yield();
+      }
+      delay(300);
+      repeat++;
   }
   yield();
 }
