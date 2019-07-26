@@ -63,12 +63,7 @@ void setup() {
 }
 
 void loop() {
-  
   server.handleClient();
-  
-  //for (int i = 0; i < numberOfLights; i++) {
-    //digitalWrite(ledPins[i], ledState);
- //}
 }
 
 void handle_OnConnect() {
