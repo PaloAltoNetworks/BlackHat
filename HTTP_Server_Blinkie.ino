@@ -26,7 +26,7 @@ WebServer server(80);
 String header;
 
 // Auxiliary variables to store the current output state
-bool LEDstate = LOW;
+bool ledState = LOW;
 
 // Assign variables
 const byte ledPins[] = {4,5,12};
@@ -152,26 +152,25 @@ void handle_wave() {
 }
 
 void handle_alert() {
-  
+  Serial.println("RED ALERT!");
+  server.send(200, "text/html", SendHTML(ledState)); 
   int repeat = 0;
   while (repeat < 3) {
     for (int i = 0; i< numberOfLights; i++) {
       digitalWrite(ledPins[i], HIGH);
       digitalWrite(BUILTIN_LED, HIGH);
-      delay(300);
-      
-      //turn the LEDs off:
-      digitalWrite(ledPins[i], LOW);
-      digitalWrite(BUILTIN_LED, LOW);
-      delay(timer);
-      yield();
-      }
-      repeat++;
       yield();
     }
-      Serial.println("RED ALERT!");
+    delay(300);
+    for (int i = 0; i< numberOfLights; i++) {
+      digitalWrite(ledPins[i], LOW);
+      digitalWrite(BUILTIN_LED, LOW);
       yield();
-      server.send(200, "text/html", SendHTML(ledState)); 
+    }
+    delay(timer);
+  }
+  repeat++;
+  yield();
 }
 
 void handle_NotFound(){
