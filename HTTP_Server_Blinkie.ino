@@ -168,8 +168,8 @@ void handle_alert() {
       yield();
     }
     delay(timer);
+    repeat++;
   }
-  repeat++;
   yield();
 }
 
